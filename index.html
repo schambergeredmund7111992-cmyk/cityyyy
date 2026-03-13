@@ -105,6 +105,30 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* 兑换码输入框与错误动画 */
+        .glass-input {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid #EADDBC;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #D4B872;
+            box-shadow: 0 0 0 3px rgba(212, 184, 114, 0.2);
+            outline: none;
+        }
+        .error-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+            border-color: #ef4444 !important;
+            background: #fef2f2 !important;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
     </style>
 </head>
 <body class="antialiased flex items-center justify-center py-10 px-4">
@@ -185,6 +209,74 @@
 
         // DOM 元素获取
         const appDiv = document.getElementById('app');
+
+        // 渲染主页（展示功能与兑换码）
+        function renderHome() {
+            appDiv.innerHTML = `
+                <div class="text-center fade-in">
+                    <p class="text-[#D4B872] text-sm font-semibold tracking-widest mb-3 uppercase">Welcome to the journey</p>
+                    <h1 class="text-3xl md:text-4xl font-bold mb-4 text-stone-800 leading-tight">恋爱风味物语</h1>
+                    <p class="text-stone-500 mb-8 leading-relaxed text-sm md:text-base">
+                        探索你在亲密关系中的隐藏人格，找到属于你的专属「食物」标签。
+                    </p>
+
+                    <!-- 功能展示区 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 text-left">
+                        <div class="p-5 bg-white/40 rounded-2xl border border-white/60 hover:bg-white/60 transition-colors">
+                            <div class="text-2xl mb-3">🔮</div>
+                            <h4 class="font-semibold text-stone-800 mb-1 text-sm md:text-base">深度心理剖析</h4>
+                            <p class="text-xs text-stone-500">基于成人依恋理论，深层解读情感模式</p>
+                        </div>
+                        <div class="p-5 bg-white/40 rounded-2xl border border-white/60 hover:bg-white/60 transition-colors">
+                            <div class="text-2xl mb-3">📝</div>
+                            <h4 class="font-semibold text-stone-800 mb-1 text-sm md:text-base">20道沉浸式问答</h4>
+                            <p class="text-xs text-stone-500">精选情境测试，直击内心深处的真实选择</p>
+                        </div>
+                        <div class="p-5 bg-white/40 rounded-2xl border border-white/60 hover:bg-white/60 transition-colors">
+                            <div class="text-2xl mb-3">💌</div>
+                            <h4 class="font-semibold text-stone-800 mb-1 text-sm md:text-base">专属风味报告</h4>
+                            <p class="text-xs text-stone-500">获取定制食物人格标签与专属恋爱指南</p>
+                        </div>
+                    </div>
+
+                    <!-- 兑换码输入区 -->
+                    <div class="max-w-xs mx-auto space-y-4 pt-6 border-t border-[#EADDBC]/50">
+                        <p class="text-stone-600 text-sm font-medium">请输入邀请码以开启测试</p>
+                        <div>
+                            <input type="text" id="redeem-code" placeholder="输入6位数字代码" maxlength="6" 
+                                class="glass-input w-full px-4 py-3 rounded-xl text-center text-stone-800 font-semibold tracking-widest placeholder:font-normal placeholder:tracking-normal placeholder:text-stone-400"
+                                onkeypress="if(event.key === 'Enter') verifyCode()">
+                            <p id="error-msg" class="text-red-400 text-xs mt-2 opacity-0 transition-opacity">邀请码不正确，请重新输入</p>
+                        </div>
+                        <button onclick="verifyCode()" class="w-full bg-[#3D3828] text-[#FFFDF8] px-8 py-3 rounded-xl text-sm font-medium transition-all hover:bg-[#5A533C] hover:shadow-lg hover:-translate-y-0.5">
+                            验证并进入
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 验证兑换码
+        function verifyCode() {
+            const codeInput = document.getElementById('redeem-code');
+            const errorMsg = document.getElementById('error-msg');
+            const code = codeInput.value.trim();
+
+            if (code === '070524') {
+                transitionTo(renderIntro);
+            } else {
+                // 触发错误动画与提示
+                codeInput.classList.remove('error-shake');
+                void codeInput.offsetWidth; // 触发DOM重绘以重启短动画
+                codeInput.classList.add('error-shake');
+                errorMsg.style.opacity = '1';
+                
+                setTimeout(() => {
+                    errorMsg.style.opacity = '0';
+                    codeInput.classList.remove('error-shake');
+                }, 2000);
+            }
+        }
 
         // 渲染欢迎页
         function renderIntro() {
@@ -368,7 +460,7 @@
         }
 
         // 初始化
-        window.onload = renderIntro;
+        window.onload = renderHome;
     </script>
 </body>
 </html>
