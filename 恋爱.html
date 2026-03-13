@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恋爱风味物语 | 你的恋爱人格是哪种食物？</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基础氛围感设置 */
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, #FFFDF8 0%, #FFF4D2 100%);
+            color: #3D3828;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 动态背景光晕，增加高级氛围感 */
+        .ambient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .orb-1 {
+            width: 300px; height: 300px;
+            background: #FFE8A1;
+            top: -50px; left: -50px;
+            animation: float 8s ease-in-out infinite alternate;
+        }
+        .orb-2 {
+            width: 400px; height: 400px;
+            background: #FFF9E6;
+            bottom: -100px; right: -100px;
+            animation: float 12s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 50px); }
+        }
+
+        /* 毛玻璃高级卡片 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 40px rgba(220, 200, 150, 0.15);
+            z-index: 10;
+            position: relative;
+        }
+
+        /* 选项按钮动效 */
+        .btn-option {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #EADDBC;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .btn-option:hover {
+            background: #FFF9E6;
+            border-color: #D4B872;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 184, 114, 0.15);
+        }
+
+        /* 页面切换动画 */
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .fade-out {
+            animation: fadeOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-15px); }
+        }
+
+        /* 进度条 */
+        .progress-bar-fill {
+            transition: width 0.4s ease;
+        }
+
+        /* 加载动画 */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #FFF4D2;
+            border-bottom-color: #D4B872;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased flex items-center justify-center py-10 px-4">
+
+    <!-- 背景光晕 -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <!-- 主容器 -->
+    <div id="app" class="w-full max-w-2xl glass-card rounded-3xl p-8 md:p-12 fade-in">
+        <!-- 内容由 JS 动态渲染 -->
+    </div>
+
+    <script>
+        // 核心数据：20个深度的情感问题
+        const questions = [
+            { q: "在初次约会时，你通常是怎样的状态？", opts: [{t:"温柔倾听，时刻关注对方的感受与情绪", v:"A"}, {t:"热情主动，总能抛出有趣的话题活跃气氛", v:"B"}, {t:"礼貌得体，保持着舒服但不过分的社交距离", v:"C"}, {t:"表面平静，但内心在默默观察和考量对方", v:"D"}] },
+            { q: "当伴侣因为工作忙碌而忽略了你的消息，你的第一反应是？", opts: [{t:"感到内耗，开始回想自己是不是做错了什么", v:"A"}, {t:"直接打个电话过去问情况，表达不满和想念", v:"B"}, {t:"觉得正好，自己也趁机独处做点喜欢的事", v:"C"}, {t:"理性分析对方的处境，但心里默默记下一笔", v:"D"}] },
+            { q: "你认为维系一段长期关系的基石是什么？", opts: [{t:"毫无保留的分享欲和无时无刻的陪伴", v:"A"}, {t:"共同的激情、目标和直来直去的沟通", v:"B"}, {t:"互相尊重彼此的边界和精神世界的独立", v:"C"}, {t:"深刻的默契、灵魂契合以及经得起考验的信任", v:"D"}] },
+            { q: "面对感情中的激烈争吵，你倾向于如何处理？", opts: [{t:"很容易妥协或落泪，只想快点和好恢复亲密", v:"A"}, {t:"情绪激烈地表达自己的想法，必须当下解决问题", v:"B"}, {t:"感到厌烦，需要物理隔离冷静几天再说", v:"C"}, {t:"控制情绪，试图有逻辑地复盘并寻找根本原因", v:"D"}] },
+            { q: "如果你要送伴侣一份礼物，你会偏向于？", opts: [{t:"亲手制作的、充满回忆的手工或心思小物件", v:"A"}, {t:"对方最近随口提过非常想要的、能带来惊喜的东西", v:"B"}, {t:"高质感、实用且不落俗套的生活用品", v:"C"}, {t:"一本小众的书或音乐会门票，寻求精神共鸣", v:"D"}] },
+            { q: "关于恋爱的「平淡期」，你的真实想法是？", opts: [{t:"有点害怕，平淡总让我觉得对方是不是不爱我了", v:"A"}, {t:"平淡太无聊了，我会主动制造浪漫和波澜", v:"B"}, {t:"很享受，平淡才是生活的常态，各自安好最舒服", v:"C"}, {t:"那是考验的开始，只有熬过平淡的爱才是真金", v:"D"}] },
+            { q: "当你感到脆弱或难过时，你希望伴侣怎么做？", opts: [{t:"紧紧拥抱我，不断地给我言语上的安慰和肯定", v:"A"}, {t:"替我出头，或者带我吃顿大餐发泄情绪", v:"B"}, {t:"只需静静陪在一旁，不要问太多，给我空间消化", v:"C"}, {t:"帮我分析问题，提供理性的建议和深度的对谈", v:"D"}] },
+            { q: "伴侣拥有几个关系很好的异性朋友，你会？", opts: [{t:"表面不说，但内心非常在意且容易吃醋", v:"A"}, {t:"直接表达占有欲，要求对方保持绝对距离", v:"B"}, {t:"完全不在意，我也有自己的社交圈", v:"C"}, {t:"暗中观察他们的边界感，一旦越界会果断处理", v:"D"}] },
+            { q: "如果要用一种温度来形容你理想中的爱情？", opts: [{t:"37℃：贴近体温，恒温、温暖且不可或缺", v:"A"}, {t:"100℃：沸腾、热烈，毫无保留地燃烧", v:"B"}, {t:"20℃：像春天的风，清爽宜人，不黏腻", v:"C"}, {t:"从冰点慢慢加热：起初清冷，越往后越醇厚滚烫", v:"D"}] },
+            { q: "当伴侣突然提出想自己一个人去旅行一周，你会？", opts: [{t:"感到失落，立刻反思是不是自己让他觉得窒息了", v:"A"}, {t:"强烈要求一起去，觉得情侣就该一起经历", v:"B"}, {t:"欣然同意，并开始规划自己这一周的单身快乐生活", v:"C"}, {t:"探究他独行的深层原因，确认无危机后表示支持", v:"D"}] },
+            { q: "你最受不了伴侣的哪种行为？", opts: [{t:"冷暴力和莫名其妙的疏离感", v:"A"}, {t:"优柔寡断，对感情有所隐瞒或不坦诚", v:"B"}, {t:"过度粘人，试图控制我的个人时间和空间", v:"C"}, {t:"肤浅，在精神层面无法与我进行深度对话", v:"D"}] },
+            { q: "关于未来规划，你的习惯是？", opts: [{t:"希望对方能把我们的未来规划得明明白白，带我走", v:"A"}, {t:"充满激情地一起畅想，想到什么就立刻去实现", v:"B"}, {t:"顺其自然，更关注当下的自我提升和感受", v:"C"}, {t:"理性评估现实条件，制定切实可行的长远目标", v:"D"}] },
+            { q: "对于前任，你内心真实的感受倾向于？", opts: [{t:"偶尔还会想起，容易陷入感伤的怀旧情绪中", v:"A"}, {t:"爱恨分明，好的时候全心投入，散了就形同陌路", v:"B"}, {t:"像是过客，过去就过去了，对现在毫无影响", v:"C"}, {t:"是一面镜子，让我更深刻地认知了自己的人性与需求", v:"D"}] },
+            { q: "当关系基本稳定后，你会表现出哪种反差？", opts: [{t:"外表可能是大人，恋爱里完全是个需要哄的小孩", v:"A"}, {t:"看起来大大咧咧，其实极度护短且心思细腻", v:"B"}, {t:"看似亲密，但依然能在内心保留一块不容触碰的孤岛", v:"C"}, {t:"卸下高冷的防备，展现出意想不到的极致温柔与依赖", v:"D"}] },
+            { q: "日常发消息的频率，你觉得怎样最舒服？", opts: [{t:"随时随地分享日常，哪怕是路边的一只猫", v:"A"}, {t:"有事说事，但经常会打视频电话直接聊", v:"B"}, {t:"不需要每天都聊，有重要的事或有趣的见闻再分享", v:"C"}, {t:"比起碎片化的闲聊，更喜欢晚上有质量的深度沟通", v:"D"}] },
+            { q: "如果在恋爱中发现双方有一些不可调和的差异，你会？", opts: [{t:"委屈自己去迎合对方，因为不想失去这段感情", v:"A"}, {t:"激烈地争辩，试图让对方接受自己的观点", v:"B"}, {t:"冷处理，觉得实在合不来就算了，不强求", v:"C"}, {t:"理智评估差异是否触碰底线，无法磨合会及时止损", v:"D"}] },
+            { q: "伴侣精心为你准备了一个不合你心意的惊喜，你会？", opts: [{t:"即使不喜欢也会表现得超级感动，怕对方伤心", v:"A"}, {t:"直接笑着吐槽说“你好笨哦，我不喜欢这个”但心里高兴", v:"B"}, {t:"礼貌道谢，但事后会有意无意暗示自己真正的喜好", v:"C"}, {t:"感谢他的付出，但在合适的机会真诚交流彼此的需求", v:"D"}] },
+            { q: "你认为爱情里最性感的瞬间是？", opts: [{t:"对方看向我时，眼神里只有我一个人的偏爱", v:"A"}, {t:"对方在人群中毫不避讳地牵起我的手或拥吻", v:"B"}, {t:"对方专注做自己的事情时散发出的独立魅力", v:"C"}, {t:"两人对某个复杂问题的看法不谋而合的瞬间", v:"D"}] },
+            { q: "在感情里，你最害怕被剥夺的是什么？", opts: [{t:"被爱的确信感和安全感", v:"A"}, {t:"表达自我的权利和激情", v:"B"}, {t:"独处的时间和个人隐私", v:"C"}, {t:"内心的秩序和对生活的掌控感", v:"D"}] },
+            { q: "如果非要给爱情设定一个最终目标，你觉得是？", opts: [{t:"两人融为一体，永远不分离，成为彼此的全部", v:"A"}, {t:"一起经历世间的所有疯狂与美好，不留遗憾", v:"B"}, {t:"拥有各自完整的人生，恰好愿意结伴走一段路", v:"C"}, {t:"在漫长的岁月中，成为彼此最深沉的依靠和救赎", v:"D"}] }
+        ];
+
+        // 测试结果深度解析数据
+        const results = {
+            A: {
+                name: "焦糖烤布蕾",
+                subtitle: "外壳酥脆，内心极致柔软的浪漫主义者",
+                icon: "🍮",
+                tags: ["情感细腻", "无私奉献", "极度渴望偏爱"],
+                analysis: "你的情感模式属于典型的「焦虑型依恋」。在爱情里，你就像一份焦糖布蕾，外表可能有一层试图保护自己的焦糖硬壳，但只要对方给予足够的温暖，你就会毫无保留地展露内心极其柔软、甜美的一面。你对情绪的感知力极高，总能敏锐察觉伴侣的需求，并乐于付出。但同时，你也容易因为缺乏安全感而陷入内耗，总是在寻找对方“足够爱我”的证据。",
+                guide: "你需要明白，你的价值不取决于伴侣的反馈。试着将投射在对方身上的注意力收回一些放到自己身上。你的灵魂伴侣，是那个能坚定地接住你所有小情绪、用行动给你“定海神针”般安全感的人。"
+            },
+            B: {
+                name: "沸腾老火锅",
+                subtitle: "炽热坦荡，爱意翻涌的直球选手",
+                icon: "🍲",
+                tags: ["热烈坦诚", "绝对护短", "全情投入"],
+                analysis: "你的情感底色是安全且充满激情的。你面对爱情就像一锅沸腾的红油火锅，热烈、直白、包容万象。你不喜欢猜忌和推拉，爱一个人就会毫无保留地给予他全部的热情和支持。在关系中，你通常是推动发展的那个人，有着极强的保护欲和责任感。但因为你付出时过于用力，当对方无法给出同频的回应时，你容易感到强烈的失落与挫败。",
+                guide: "你的直率是你最迷人的武器，但爱情有时也需要“文火慢炖”。学会在关系中留白，允许对方用他的节奏来爱你。最适合你的伴侣，是那个同样赤诚、能接住你所有热情并给予热烈回应的“同频者”。"
+            },
+            C: {
+                name: "气泡薄荷水",
+                subtitle: "清冷独立，需要呼吸感的自由灵魂",
+                icon: "🧊",
+                tags: ["理性清冷", "边界感强", "精神独立"],
+                analysis: "你倾向于「回避型依恋」或高度独立的恋爱模式。你就像一杯加了冰块的气泡薄荷水，清爽、透彻，绝不黏腻。对你而言，爱情是生活的调味品，而非必需品。你极其看重个人空间和精神独立，哪怕在最亲密的关系中，你也需要保留一块属于自己的“孤岛”。你很少无理取闹，解决问题极其理智。但这常会让伴侣误以为你不够爱他们，或者觉得你过于冷漠。",
+                guide: "保护自己的边界没有错，但在亲密关系中，适度的“麻烦”对方和展现脆弱，恰恰是加深链接的秘诀。试着偶尔卸下防备，最适合你的人，是那个内核稳定、拥有自己完整世界，且绝不试图控制你的人。"
+            },
+            D: {
+                name: "72%黑巧克力",
+                subtitle: "深邃慢热，回味悠长的智性恋者",
+                icon: "🍫",
+                tags: ["极致慢热", "灵魂契合", "深沉克制"],
+                analysis: "你的情感模式深沉且充满试探，属于「恐惧回避型」或深度慢热者。你对待感情就像品尝高纯度的黑巧克力，起初可能会让人觉得有些微苦和难以接近。你防备心较重，习惯用理性去压抑感性，在完全信任一个人之前，绝不轻易交出底牌。然而，一旦对方通过了你的层层考验，你会展现出极其惊人的深情、忠诚与理解力，你的爱是厚重且经得起岁月推敲的。",
+                guide: "你太害怕失去和被辜负，所以总是提前设防。试着允许关系中有一些失控的美好，不要总是用放大镜去寻找悲剧的线索。你的理想伴侣，是具有强大共情能力、愿意花耐心去一层层剥开你心防的智者。"
+            }
+        };
+
+        // 状态变量
+        let currentIdx = 0;
+        let scores = { A:0, B:0, C:0, D:0 };
+
+        // DOM 元素获取
+        const appDiv = document.getElementById('app');
+
+        // 渲染欢迎页
+        function renderIntro() {
+            appDiv.innerHTML = `
+                <div class="text-center fade-in">
+                    <p class="text-[#D4B872] text-sm font-semibold tracking-widest mb-3 uppercase">Love Personality Test</p>
+                    <h1 class="text-3xl md:text-4xl font-bold mb-6 text-stone-800 leading-tight">你的恋爱人格<br/>是哪种「食物」？</h1>
+                    <p class="text-stone-500 mb-10 leading-relaxed text-sm md:text-base">
+                        20个深层次的心灵叩问，拨开表面的情绪迷雾，<br class="hidden md:block"/>
+                        以心理学依恋理论为底色，揭开你在亲密关系中隐藏的真实面貌。
+                    </p>
+                    <button onclick="startTest()" class="bg-[#3D3828] text-[#FFFDF8] px-10 py-4 rounded-full text-lg font-medium transition-all hover:bg-[#5A533C] hover:shadow-lg hover:-translate-y-1">
+                        开始深度测试
+                    </button>
+                    <p class="text-stone-400 text-xs mt-6">全程约需 2-3 分钟 · 请依直觉作答</p>
+                </div>
+            `;
+        }
+
+        // 开始测试
+        function startTest() {
+            currentIdx = 0;
+            scores = { A:0, B:0, C:0, D:0 };
+            transitionTo(renderQuestion);
+        }
+
+        // 渲染问题页
+        function renderQuestion() {
+            const qData = questions[currentIdx];
+            const progress = ((currentIdx) / questions.length) * 100;
+
+            let optsHtml = qData.opts.map((opt, index) => `
+                <button onclick="handleAnswer('${opt.v}')" class="btn-option w-full text-left p-5 rounded-xl mb-4 text-stone-700 text-sm md:text-base leading-relaxed">
+                    ${opt.t}
+                </button>
+            `).join('');
+
+            appDiv.innerHTML = `
+                <div class="fade-in">
+                    <!-- 进度条 -->
+                    <div class="mb-8">
+                        <div class="flex justify-between text-xs text-stone-400 mb-2 font-medium">
+                            <span>Question ${currentIdx + 1}</span>
+                            <span>${currentIdx + 1} / 20</span>
+                        </div>
+                        <div class="h-1 w-full bg-[#F2E8CD] rounded-full overflow-hidden">
+                            <div class="h-full bg-[#D4B872] progress-bar-fill" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 问题 -->
+                    <h2 class="text-xl md:text-2xl font-semibold text-stone-800 mb-8 leading-normal">${qData.q}</h2>
+                    
+                    <!-- 选项 -->
+                    <div>${optsHtml}</div>
+                </div>
+            `;
+        }
+
+        // 处理回答
+        function handleAnswer(type) {
+            scores[type]++;
+            currentIdx++;
+            
+            if (currentIdx < questions.length) {
+                transitionTo(renderQuestion);
+            } else {
+                transitionTo(renderLoading);
+            }
+        }
+
+        // 渲染加载页
+        function renderLoading() {
+            appDiv.innerHTML = `
+                <div class="text-center py-10 fade-in">
+                    <span class="loader mb-6"></span>
+                    <h3 id="loading-text" class="text-xl text-stone-700 font-medium transition-opacity duration-500">正在萃取你的性格底色...</h3>
+                    <p class="text-stone-400 text-sm mt-3">这需要一点点时间</p>
+                </div>
+            `;
+
+            // 动态改变文字增加真实感
+            const texts = ["正在萃取你的性格底色...", "正在分析依恋与防备倾向...", "正在匹配灵魂的独特风味..."];
+            let tIdx = 0;
+            const textEl = document.getElementById('loading-text');
+            
+            const interval = setInterval(() => {
+                tIdx++;
+                if(tIdx < texts.length) {
+                    textEl.style.opacity = 0;
+                    setTimeout(() => {
+                        textEl.innerText = texts[tIdx];
+                        textEl.style.opacity = 1;
+                    }, 500);
+                }
+            }, 1200);
+
+            // 模拟分析计算时间
+            setTimeout(() => {
+                clearInterval(interval);
+                transitionTo(renderResult);
+            }, 3800);
+        }
+
+        // 计算最终结果并渲染
+        function renderResult() {
+            // 找出最高分的类型，遇到平局默认取第一个找到的最大值
+            let maxType = 'A';
+            let maxScore = -1;
+            for (let type in scores) {
+                if (scores[type] > maxScore) {
+                    maxScore = scores[type];
+                    maxType = type;
+                }
+            }
+
+            const res = results[maxType];
+
+            // 标签HTML
+            const tagsHtml = res.tags.map(tag => 
+                `<span class="px-3 py-1 bg-[#FFF9E6] text-[#A68A3D] border border-[#F2E8CD] rounded-full text-xs md:text-sm mr-2 mb-2 inline-block">${tag}</span>`
+            ).join('');
+
+            appDiv.innerHTML = `
+                <div class="fade-in pb-4">
+                    <div class="text-center mb-10">
+                        <div class="text-7xl md:text-8xl mb-6 drop-shadow-lg filter">${res.icon}</div>
+                        <p class="text-[#D4B872] text-sm font-semibold tracking-widest mb-2 uppercase">Your Personality</p>
+                        <h2 class="text-3xl md:text-4xl font-bold text-stone-800 mb-3">${res.name}</h2>
+                        <p class="text-stone-500 italic text-sm md:text-base">"${res.subtitle}"</p>
+                    </div>
+
+                    <div class="mb-8 text-center">
+                        ${tagsHtml}
+                    </div>
+
+                    <div class="space-y-8 text-left bg-white/50 p-6 md:p-8 rounded-2xl border border-white">
+                        <div>
+                            <h3 class="text-lg font-semibold text-stone-800 mb-3 flex items-center">
+                                <span class="w-1.5 h-4 bg-[#D4B872] rounded-full mr-2"></span>
+                                深度性格解析
+                            </h3>
+                            <p class="text-stone-600 text-sm md:text-base leading-relaxed text-justify">
+                                ${res.analysis}
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold text-stone-800 mb-3 flex items-center">
+                                <span class="w-1.5 h-4 bg-[#D4B872] rounded-full mr-2"></span>
+                                专属恋爱指南
+                            </h3>
+                            <p class="text-stone-600 text-sm md:text-base leading-relaxed text-justify">
+                                ${res.guide}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 text-center flex flex-col items-center justify-center space-y-4">
+                        <button onclick="startTest()" class="border-2 border-[#3D3828] text-[#3D3828] bg-transparent px-10 py-3 rounded-full text-sm font-medium transition-all hover:bg-[#3D3828] hover:text-[#FFFDF8]">
+                            重新测试
+                        </button>
+                        <p class="text-stone-400 text-xs">截图保存你的恋爱风味卡片，分享给懂你的人</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 页面切换包装函数（带淡出淡入动画）
+        function transitionTo(renderFunc) {
+            const child = appDiv.firstElementChild;
+            if (child) {
+                child.classList.remove('fade-in');
+                child.classList.add('fade-out');
+                setTimeout(() => {
+                    renderFunc();
+                }, 400); // 等待淡出动画结束
+            } else {
+                renderFunc();
+            }
+        }
+
+        // 初始化
+        window.onload = renderIntro;
+    </script>
+</body>
+</html>
